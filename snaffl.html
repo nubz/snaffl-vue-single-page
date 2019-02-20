@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>snaffl demo site (vue.js)</title>
+    <meta name="description" content="preview of content curated on snaffl.io and rendered via a single html file">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <script src="https://unpkg.com/vue@2.4.3/dist/vue.js"></script> 
+    <script src="https://unpkg.com/vue-resource@1.5.0/dist/vue-resource.min.js"></script>
+    <script src="https://unpkg.com/blueimp-gallery@2.27.0/js/blueimp-helper.js"></script> 
+    <script src="https://unpkg.com/blueimp-gallery@2.27.0/js/blueimp-gallery.js"></script> 
+    <script src="https://unpkg.com/blueimp-gallery@2.27.0/js/blueimp-gallery-fullscreen.js"></script> 
+    <script src="https://unpkg.com/vue-gallery@1.3.0/dist/js/vue-gallery.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5Djz4njgi1sxnVyBs83232_tOI5Kgxco"></script>
+    <link href="https://fonts.googleapis.com/css?family=Lato|Roboto|Chewy:300,400,500" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/css-social-buttons/1.3.0/css/zocial.css" rel="stylesheet">
+    <link href="https://unpkg.com/blueimp-gallery@2.27.0/css/blueimp-gallery.min.css" rel="stylesheet">
+    <style>
+      body { background: #ebebeb; margin: 0 8px; padding: 0; font-family: 'Roboto', sans-serif; }
+      h1 { font-size: 1.5em; }
+      .wrapper { padding-top: 72px; }
+      .wrapper > header { position: fixed; top: 0; width: 100%; background: #ebebeb; border-bottom: 1px solid #ddd;  padding-left: 12px;  color: #455A64;  z-index: 1;  margin: 0 -8px; }
+      .branding { font-family: 'Chewy', cursive; font-weight: normal; }
+      header > .branding { margin: 8px; font-size: 27px; }
+      .google-map { width: 100%; height: 500px; }
+      .image { float: left; background-size: cover; background-repeat: no-repeat;  background-position: center center; border: 1px solid #ebebeb; margin: 5px;  width: 300px; height: 200px; cursor: pointer;  box-sizing: border-box; box-shadow: 0 0 6px rgba(0,0,0,0.27); }
+      .image.cover { width: 100%; margin: 0 0 1em 0; float: none; height: 280px; }
+      .card-content { max-width: 800px; box-sizing: border-box; border: 1px solid #dedede; padding: 5px 30px 30px 30px; margin: 0 3em; font-size: 21px; background: white; box-shadow: 0 0 6px rgba(0,0,0,0.27); }
+      .card-content p, .card-content ul, .card-content li { line-height: 33px; }
+      .card-content img.cover-image {  width: 100%; }
+      .tree-menu .label-wrapper { padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid #ccc; }
+      .tree-menu a { display: block; }
+      .tree-menu a[href] { padding: 5px 0; }
+      .tree-menu .has-children { cursor: pointer; margin-left:-8px; }
+      .container { position: relative; display: inline-block; width: 100%; min-height: calc(100vh - 162px); }
+      .container > #nav { width: 240px; float: left; font-size: 14px; }
+      .container > div + div { float: left; width: calc(100% - 240px); }
+      .summary { font-style: italic; border-left: 5px solid lightgrey; padding: 1em; }
+      .hidden { opacity: 0; position: absolute !important; top: -9999px !important; left: -9999px !important; }
+      .shown {  opacity: 1; }
+      footer { background-color: #ebebeb; padding: 1em 0.5em; margin: 0 -8px; }
+      footer > div { padding: 1em 0.5em; color: #455A64;}
+      .directory > ul, .schedule > ul { list-style: none; padding: 0; }
+      .directory > ul li, .schedule > ul li { position: relative; border-top: 1px solid #ebebeb; padding: 1em 0; box-sizing: border-box; cursor: pointer; min-height: 160px; }
+      .schedule > ul li { background-position: center; background-size: cover; padding: 0; height: 160px; }
+      .avatar, .event-date { display: inline-block; float: left; width: 140px; margin-right: 1em; }
+      .event-date { background-color: tomato; color: white; height: 160px; box-sizing: border-box; border-right: 5px solid white; }
+      .event-summary { display: inline-block; width: calc(100% - 233px); line-height: 1em; padding: 8px 16px; background: rgba(0,0,0,0.5); color: white; float: left; margin-top: 16px; max-height: 116px; overflow: hidden; }
+      .event-summary > p { line-height: 16px; font-size: 85%; font-style: italic; max-height: 50px; overflow: hidden; }
+      .event-day { font-size: 36px; padding: 0.70em 0; text-align: center; font-weight: 700; }
+      .event-month-year { text-align: center; }
+      .avatar-head { width: 120px; height: 120px; border-radius: 50%; background-position: center; background-size: cover; }
+      .profile-summary { display: inline-block; width: calc(100% - 170px); }
+      .profile-summary > * { margin-top: 0; margin-bottom: 0; }
+      .embed-container { width: 100%; height: 500px; }
+      .tree-menu { padding: 5px; }
+      .tree-menu a[href] { text-decoration: none; color: black; }
+      .tree-menu a[href]:after { content: ''; }
+      .has-children i { transition: all 300ms 0s ease-in-out; float:left; font-size: 14px; padding-right: 4px; color: #455A64; }
+      .has-children i.open { transform: rotate(90deg); }
+      .article-share-buttons { text-align: right; }
+      @media (max-width: 800px) {
+        .image { width: calc(100% - 28px); }
+        .image.cover { height: 160px; }
+        .container > div { width: 100% !important; float: none; }
+        .card-content > h1 { font-size: 27px; margin-top: 8px; }
+        .card-content { font-size: 18px; margin: 0; }
+        .card-content p, .card-content ul, .card-content li { line-height: 28.5px; }
+        .directory > ul li { min-height: 150px; }
+        div.avatar, div.event-date { width: 110px; }
+        .avatar div.avatar-head { width: 100px; height: 100px; }
+        div.profile-summary { width: calc(100% - 150px); font-size: 84%; }
+        .event-summary > p { display: none; }
+        div.embed-container { width: 100%; height: 180px;}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <header><h1 id="branding" class="branding">SNAFFL.it</h1></header>
+      <div class="container">
+
+        <div id="nav">
+          <tree-menu
+           :nodes="tree.nodes"
+           :depth="0"
+           :label="tree.label"
+           ></tree-menu>
+        </div>
+        <div class="main">
+          <div id="gallery">
+            <template v-if="showMe">
+              <gallery :images="images" :index="index" @close="index = null"></gallery>
+              <div
+                class="image"
+                v-for="image, imageIndex in images"
+                @click="index = imageIndex"
+                :style="{ backgroundImage: 'url(' + image + ')' }"
+              ></div>
+            </template>
+          </div>
+
+          <div id="card">
+            <template v-if="showMe">
+              <div class="card-content">
+                <h1>{{ cardContent.title }}</h1>
+                <div v-if="cardContent.hasImage && cardContent.cardType !== 'Embed'" class="image cover" :style="{ backgroundImage: 'url(' + cardContent.images.medium + ')' }"></div>
+                <p v-if="cardContent.description && cardContent.cardType !== 'Embed'" class="summary">{{ cardContent.description }}</p>
+                <div v-if="cardContent.parsedContent" v-html="cardContent.parsedContent"></div>
+                <p v-if="cardContent.cardType === 'Embed'" class="summary">{{ cardContent.description}}</p>
+                <p v-if="cardContent.content.html" v-html="cardContent.content.html"></p>
+                <div class="article-share-buttons">
+                  <a class="zocial icon reddit" :href="cardContent.reddit" data-tooltip="Share on Reddit" target="_blank">Share on Reddit</a>
+                  <a class="zocial icon linkedin" :href="cardContent.linkedin" data-tooltip="Share on LinkedIn" target="_blank">Share on LinkedIn</a>
+                  <a class="zocial icon facebook" :href="cardContent.facebook" data-tooltip="Share on Facebook" target="_blank">Share on Facebook</a>
+                  <a class="zocial icon twitter" :href="cardContent.twitter" data-tooltip="Share on Twitter" target="_blank">Share on Twitter</a>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <div id="map">
+            <template>
+              <google-map :name="mapName" :class="mapClasses"></google-map>
+            </template>
+          </div>
+
+          <div id="directory">
+            <template v-if="showMe">
+              <div class="card-content directory">
+                <h1>{{ meta.title }}</h1>
+                <p v-if="meta.description" class="summary">{{ meta.description }}</p>
+                <ul>
+                  <li v-for="profile in profiles" v-on:click="navigate(profile.url, 'card')">
+                    <div class="avatar"><div class="avatar-head" :style=" { backgroundImage: 'url(' + profile.images.small + ')' }"></div></div>
+                    <div class="profile-summary">
+                      <h3>{{ profile.content.Entity.firstName }} {{ profile.content.Entity.lastName }}</h3>
+                      <p>{{ profile.description }}</p>
+                      <p>Email: <a :href="profile.content.Entity.email">{{ profile.content.Entity.email }}</a></p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </template>
+          </div>
+
+          <div id="schedule">
+            <template v-if="showMe">
+              <div class="card-content schedule">
+                <h1>{{ meta.title }}</h1>
+                <p v-if="meta.description" class="summary">{{ meta.description }}</p>
+                <ul>
+                  <li class="event-listItem" v-for="event in events" v-on:click="navigate(event.url, 'card')" :style=" { backgroundImage: 'url(' + event.images.medium + ')' }">
+                    <div class="event-date"><div class="event-day">{{event.content.Event.startDateParts.day}}<br>{{event.content.Event.startDateParts.monthShort}}</div><div class="event-month-year">{{event.content.Event.startDateParts.year}}</div></div>
+                    <div class="event-summary">
+                      <h3>{{ event.title }}</h3>
+                      <p>{{ event.description }}</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </template>
+          </div>
+
+        </div>
+
+        <script type="text/x-template" id="map-template">
+          <div class="google-map card-content" :id="mapName"></div>
+        </script>
+
+        <script type="text/x-template" id="tree-menu">
+          <div class="tree-menu">
+            <div class="label-wrapper" @click="toggleChildren">
+              <a :href="href" :style="indent" :class="labelClasses" @click="navigate(href, type)">
+                <i v-if="nodes" class="material-icons" :class="stateClass">&#xE315</i>
+                {{ label }}
+              </a>
+            </div>
+            <tree-menu
+              v-if="showChildren"
+              v-for="node in nodes"
+              :nodes="node.nodes"
+              :label="node.label"
+              :href="node.href"
+              :type="node.type"
+              :depth="depth + 1"
+            >
+            </tree-menu>
+          </div>
+        </script>
+
+        <script>
+          function getParameterByName(name) {
+            var match = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search)
+            return match && decodeURIComponent(match[1].replace(/\+/g, ' '))
+          }
+
+          var SNAFFL = {
+            baseUrl: 'http://snaffl.it',
+            init: function () {
+              SNAFFL.views.forEach(function (key) {
+                SNAFFL[key] = false;
+              })
+            },
+            id: getParameterByName("id") || "XTmH7jrfLAGcB4aPd",
+            cardId: getParameterByName("card") || false,
+            url: 'https://prototype.snaffl.io/api/menu/',
+            views: ['map', 'card', 'gallery', 'directory', 'schedule'],
+            nav: null,
+            navigate: function(val, type) {
+              if (!val) {
+                return
+              }
+              event.preventDefault();
+              callSnaffl(val, false, type)
+            },
+            loaders: {
+              'card': function (content) {
+                callSnaffl(content.url, false, 'card')
+              },
+              'deck': function (content) {
+                var type = content.subType || content.deckType
+                SNAFFL.loaders[type](content)
+              },
+              'landingCard': function (id) {
+                callSnaffl('https://prototype.snaffl.io/api/cards/' + id, false, 'card')
+              },
+              'Location': function (content) {
+                return '<p> ' + content.Location.address + ', ' + content.Location.postcode + '</p>'
+              },
+              'Embed': function (content) {
+                return '<div class="embed-container"><iframe src="' + content.Embed.url + '" width="100%" height="100%" frameborder="0" allowfullscreen></iframe></div>'
+              },
+              'Entity': function (content) {
+                let profile = []
+                profile.push('<h2>' + content.Entity.firstName + ' ' + content.Entity.lastName + '</h2>')
+                if(content.Entity.email){
+                  profile.push('<p>Email: <a href="' + content.Entity.email + '">' + content.Entity.email + '</a>')
+                }
+                if(content.Entity.telephone) {
+                  profile.push('<p>Telephone: ' + content.Entity.telephone + '</p>')
+                }
+
+                return profile.join('')
+              },
+              'Event': function (content) {
+                let event = [];
+                const sameDay = content.Event.startDate === content.Event.endDate || !content.Event.endDate
+                const start = content.Event.startDateParts
+                const startTime = content.Event.startTimeParts
+                let startString = start.day + ' ' + start.month + ' ' + start.year + ' at ' + startTime.time12hr + startTime.period
+                if (sameDay) {
+                  startString += ' - ' + content.Event.endTimeParts.time12hr + content.Event.endTimeParts.period
+                }
+                event.push('<h2>' + startString + '</h2>');
+                if (!sameDay && content.Event.endDateParts) {
+                  const end = content.Event.endDateParts
+                  const endTime = content.Event.endTimeParts
+                  event.push('<p>until</p><h2>' + end.day + ' ' + end.month + ' ' + end.year + ' at ' + endTime.time12hr + endTime.period + '</h2>')
+                }
+
+                event.push('<p><a href="#">Add to your calendar</a></p>')
+                return event.join('')
+              },
+              'Image': function () {},
+              'Article': function () {},
+              'Map': loadMap,
+              'TagMap': loadMap,
+              'Directory': loadDirectory,
+              'Schedule': loadSchedule,
+              'Gallery': loadGallery,
+              'MultiDeck': function (content) {
+                var landing = content.menu[0];
+                SNAFFL.loaders[landing.type](landing)
+              },
+              'TagDeck': loadGallery
+            }
+          }
+
+          function loadSchedule(content) {
+            showView('schedule');
+            content.hasImage = content.image !== '';
+
+            if(SNAFFL.schedule) {
+              SNAFFL.schedule.content = content;
+              return;
+            }
+
+            SNAFFL.schedule = new Vue({
+              el: '#schedule',
+              data: function () {
+                return {
+                  content: content,
+                  showMe: true
+                }
+              },
+              computed: {
+                meta: function () {
+                  return this.content
+                },
+                events: function () {
+                  return this.content.menu
+                }
+              },
+              methods: {
+                navigate: SNAFFL.navigate
+              }
+            });
+          }
+
+          function loadDirectory(content) {
+            showView('directory');
+
+            content.hasImage = content.image !== '';
+
+            if(SNAFFL.directory) {
+              SNAFFL.directory.content = content;
+              return;
+            }
+
+            SNAFFL.directory = new Vue({
+              el: '#directory',
+              data: function () {
+                return {
+                  content: content,
+                  showMe: true
+                }
+              },
+              computed: {
+                meta: function () {
+                  return this.content
+                },
+                profiles: function () {
+                  return this.content.menu
+                }
+              },
+              methods: {
+                navigate: SNAFFL.navigate
+              }
+            });
+          }
+
+          function reduceImages(menu) {
+            return menu.reduce(function (list, next) {
+              list.push(next.images.large);
+              return list;
+            }, []);
+          }
+
+          function loadGallery(content) {
+
+            showView('gallery');
+
+            if(SNAFFL.gallery) {
+              SNAFFL.gallery.menu = content.menu;
+              return;
+            }
+
+            SNAFFL.gallery = new Vue({
+              el: '#gallery',
+              data: function () {
+                return {
+                  menu: content.menu,
+                  index: null,
+                  showMe: true
+                }
+              },
+              computed: {
+                images: function () { return reduceImages(this.menu); }
+              },
+              components: {
+                'gallery': VueGallery
+              }
+            });
+          }
+
+          function buildNav(menu) {
+            return menu.reduce(function(items, next) {
+              if (next.subType === 'Image') {
+                return items;
+              }
+              var deckType;
+
+              var menuItem = {label: next.title, type: next.type, href: next.url}
+
+              if (next.type === 'deck') {
+                deckType = next.deckType || next.subType;
+              }
+
+              if (next.menu && (deckType === 'MultiDeck' || deckType === 'TagDeck')){
+                var nodes = buildNav(next.menu);
+                if (nodes.length) {
+                  menuItem.nodes = buildNav(next.menu);
+                  delete menuItem.href
+                }
+              }
+
+              items.push(menuItem);
+
+              return items;
+            }, [])
+          }
+
+          function loadNav(content) {
+            var heading = document.getElementById('branding');
+            heading.innerText = content.title;
+
+            Vue.component('tree-menu', {
+              template: '#tree-menu',
+              props: [ 'nodes', 'label', 'depth', 'href', 'type' ],
+              data: function() {
+                 return {
+                   showChildren: false
+                 }
+              },
+              computed: {
+                stateClass: function() {
+                  return {
+                    'closed': !this.showChildren,
+                    'open': this.showChildren
+                  }
+                },
+                labelClasses: function() {
+                  return { 'has-children': this.nodes }
+                },
+                indent: function() {
+                  return { transform: `translate(${this.depth * 8}px)` }
+                }
+              },
+              methods: {
+                toggleChildren: function() {
+                   this.showChildren = !this.showChildren;
+                },
+                navigate: SNAFFL.navigate
+              }
+            });
+
+            var tree = {
+              label: "Menu",
+              nodes: buildNav(content.menu)
+            }
+
+            SNAFFL.nav = new Vue({
+              el: '#nav',
+              data: {
+                tree
+              }
+            })
+
+            // load the deck landing page
+            if (SNAFFL.cardId) {
+              SNAFFL.loaders.landingCard(SNAFFL.cardId);
+            } else {
+              SNAFFL.loaders.deck(content);
+            }
+
+            initMenu(tree.nodes);
+          }
+
+          function loadCard(card) {
+
+            showView('card');
+
+            var data = card.data || card;
+            var id = data.id || data._id;
+
+            data.hasImage = data.image !== '';
+
+            data.shareUrl = SNAFFL.baseUrl + '?id=' + SNAFFL.id + '&card=' + id;
+            data.encodedShareUrl = encodeURIComponent(data.shareUrl);
+            data.encodedTitle = encodeURIComponent(data.title);
+            data.encodedSummary = encodeURIComponent(data.description);
+            data.reddit = "http://www.reddit.com/submit?url=" + data.encodedShareUrl + "&amp;title=" + data.encodedTitle;
+            data.twitter = "http://twitter.com/share?text=@snaffl_it%3A%20" + data.encodedTitle + "&amp;url=" + data.encodedShareUrl;
+            data.facebook = "https://www.facebook.com/sharer/sharer.php?u=" + data.encodedShareUrl;
+            data.linkedin = "https://www.linkedin.com/shareArticle?&amp;mini=true&amp;url=" + data.encodedShareUrl + "&amp;title=" + data.encodedTitle + "&amp;summary=" + data.encodedSummary + "&amp;source=";
+
+            if (data.content) {
+              var type = data.subType || data.cardType
+              data.parsedContent = SNAFFL.loaders[type](data.content)
+            }
+
+            if (SNAFFL.card) {
+              SNAFFL.card.result = data;
+              return;
+            }
+
+            SNAFFL.card = new Vue({
+              el: '#card',
+              data: function () {
+                return {
+                  result: data,
+                  showMe: true
+                }
+              },
+              computed: {
+                cardContent: function () { return this.result }
+              }
+            })
+          }
+
+          function initMenu(nodes) {
+            if (!nodes.length) {
+              SNAFFL.nav.$destroy()
+              SNAFFL.nav.$el.remove()
+            } else {
+              SNAFFL.nav.$children[0].showChildren = true;
+            }
+          }
+
+          function closeMenu() {
+            if (window.screen.width < 800) {
+              SNAFFL.nav.$children[0].showChildren = false;
+            }
+          }
+
+          function showView(view) {
+
+            closeMenu();
+
+            SNAFFL.views.forEach(function (key) {
+              if (SNAFFL[key]) SNAFFL[key].showMe = view === key;
+            });
+
+          }
+
+          function reduceMarkers(menu) {
+            return menu.reduce(function (list, next) {
+              if (next.url) {
+                list.push({
+                  title: next.title,
+                  image: next.images.thumb,
+                  url: next.url,
+                  latitude: next.content.Location.latitude,
+                  longitude: next.content.Location.longitude
+                })
+              } else {
+                list.push({
+                  latitude: next.latitude,
+                  longitude: next.longitude
+                })
+              }
+              return list;
+            }, []);
+          }
+
+          function loadMap(content) {
+
+            showView('map');
+
+            if (SNAFFL.map) {
+              SNAFFL.map.result = content;
+              return;
+            }
+
+            Vue.component('google-map', {
+              template: '#map-template',
+              props: ['name'],
+              data: function () {
+                return {
+                  mapName: 'snafflmap'
+                }
+              }
+            });
+
+            SNAFFL.map = new Vue({
+              el: '#map',
+              data: function () {
+                return {
+                  result: content,
+                  showMe: true
+                }
+              },
+              computed: {
+                markerCoordinates: function () { return reduceMarkers(this.result.menu) },
+                mapName: function () { return 'snafflmap' },
+                mapClasses: function () {
+                  return {
+                    'hidden': !this.showMe,
+                    'shown': this.showMe
+                  }
+                },
+              },
+              methods: {
+                initMap: function (coords) {
+                  var options = {
+                    center: new google.maps.LatLng(coords[0].latitude, coords[0].longitude),
+                    zoom: 15
+                  }
+                  var element = document.getElementById(this.mapName)
+                  this.map = new google.maps.Map(element, options);
+                  this.markers = [];
+                  this.setMap(this.map, coords);
+                },
+                clearMarkers: function () {
+                  this.markers.forEach(function(marker) {
+                    marker.setMap(null)
+                  });
+                },
+                setMap: function (map, coords) {
+                  var bounds = new google.maps.LatLngBounds();
+                  this.clearMarkers();
+                  coords.forEach((coord) => {
+                    var position = new google.maps.LatLng(coord.latitude, coord.longitude);
+                    var marker = new google.maps.Marker({
+                      position,
+                      map
+                    });
+
+                    if(coord.url) {
+                      var infowindow = new google.maps.InfoWindow({
+                        content: '<div><h3>' + coord.title + '</h3><a href="#" onclick="callSnaffl(\'' + coord.url + '\', false, \'card\'); return false;"><img src="' + coord.image + '"></a></div>'
+                      });
+
+                      marker.addListener('click', function() {
+                        infowindow.open(map, marker);
+                      });
+                    }
+
+                    this.markers.push(marker)
+
+                    map.fitBounds(bounds.extend(position))
+                  });
+                }
+              },
+              mounted: function () {
+                this.initMap(this.markerCoordinates)
+              },
+              watch: {
+                markerCoordinates: function (markerCoordinates) {
+                  this.setMap(this.map, markerCoordinates)
+                }
+              }
+            })
+          }
+
+          function callSnaffl(url, top, type) {
+            Vue.http.get(url).then(function(response) {
+              var content = response.body;
+              window.scrollTo(0,0);
+              // we may have a raw api record with data structure
+              document.title = content.title || content.data.title;
+
+              if (top) {
+                SNAFFL.init();
+                return loadNav(content)
+              }
+
+              if (type === 'card') {
+                return loadCard(content)
+              }
+
+              SNAFFL.loaders.deck(content)
+
+            }, function (response) {
+              alert('We could not connect to snaffl.io, please try again later.')
+            });
+          }
+
+          callSnaffl(decodeURIComponent(SNAFFL.url + SNAFFL.id), true)
+
+        </script>
+
+      </div>
+      <footer>
+        <div><span class="branding">SNAFFL</span> created by <a href="http://nubz.com">nubz</a></div>
+      </footer>
+
+    </div>
+  </body>
+</html>
